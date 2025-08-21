@@ -1,60 +1,74 @@
-#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
-
 #include "MainFrame.h"
+#include "App.h"
+
+#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
 #include <experimental/filesystem>
 #include <fstream>
+#include <chrono>
 
 const int MAX_THEMES = 2, bitmap_button_width = 25, bitmap_button_height = 25;
 
 MainFrame::MainFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title)
 {
 	panel = new wxPanel(this);
+	int max_width = this->GetMaxWidth(), min_width = this->GetMinWidth();
+
+	note_field = new wxScrolledWindow(panel, wxID_ANY, wxPoint(0, 60), wxSize(MainWindowWidth, MainWindowHeight-bitmap_button_height), wxVSCROLL);
+	note_field->SetScrollRate(0, 10);
+	//scroller->ShowScrollbars(wxSHOW_SB_NEVER, wxSHOW_SB_NEVER);
+	note_field_sizer = new wxGridSizer(0, columns, gap, gap);
 
 	wxBitmap passer;
-	add_note_button = new wxBitmapButton(panel, wxID_ANY, passer, wxPoint(0, 0), wxSize(bitmap_button_width, bitmap_button_height), wxBORDER_NONE);
-	search_button = new wxBitmapButton(panel, wxID_ANY, passer, wxPoint(bitmap_button_width, 0), wxSize(bitmap_button_width, bitmap_button_height), wxBORDER_NONE);
-	delete_button = new wxBitmapButton(panel, wxID_ANY, passer, wxPoint(2*bitmap_button_width, 0), wxSize(bitmap_button_width, bitmap_button_height), wxBORDER_NONE);
-	change_theme_button = new wxBitmapButton(panel, wxID_ANY, passer, wxPoint(3*bitmap_button_width, 0), wxSize(bitmap_button_width, bitmap_button_height), wxBORDER_NONE);
+	add_note_button = new wxBitmapButton(panel, wxID_ANY, passer, wxDefaultPosition, wxSize(bitmap_button_width, bitmap_button_height), wxBORDER_NONE);
+	search_button = new wxBitmapButton(panel, wxID_ANY, passer, wxDefaultPosition, wxSize(bitmap_button_width, bitmap_button_height), wxBORDER_NONE);
+	delete_button = new wxBitmapButton(panel, wxID_ANY, passer, wxDefaultPosition, wxSize(bitmap_button_width, bitmap_button_height), wxBORDER_NONE);
+	change_theme_button = new wxBitmapButton(panel, wxID_ANY, passer, wxDefaultPosition, wxSize(bitmap_button_width, bitmap_button_height), wxBORDER_NONE);
 	
+	wxBoxSizer* toolbar = new wxBoxSizer(wxHORIZONTAL);
+	toolbar->Add(add_note_button);
+	toolbar->AddSpacer(10);
+	toolbar->Add(search_button);
+	toolbar->AddSpacer(10);
+	toolbar->Add(delete_button);
+	toolbar->AddSpacer(10);
+	toolbar->Add(change_theme_button);
+
+
 	theme = GetTheme();
 	SetTheme(theme);
 	BindButtons();
+	
 
-	//wxButton* button = new wxButton(panel, wxID_ANY, "Button", wxPoint(150, 50), wxSize(100, 35), wxBU_EXACTFIT);
+	note_field->SetVirtualSize(wxSize(-1, height));
 
-	//wxCheckBox* checkBox = new wxCheckBox(panel, wxID_ANY, "CheckBox", wxPoint(550, 50), wxSize(100, 35), wxCHK_3STATE | wxCHK_ALLOW_3RD_STATE_FOR_USER);
+	wxBoxSizer* interactives_sizer = new wxBoxSizer(wxVERTICAL);
+	interactives_sizer->Add(toolbar, wxSizerFlags().Left().Expand());
+	interactives_sizer->AddSpacer(10);
+	interactives_sizer->Add(note_field, wxSizerFlags());
 
-	//wxStaticText* staticText = new wxStaticText(panel, wxID_ANY, "Static Text", wxPoint(150, 150), wxSize(100, 50), wxALIGN_CENTRE_HORIZONTAL);
-	//staticText->SetBackgroundColour(*wxLIGHT_GREY);
+	wxBoxSizer* outer_sizer = new wxBoxSizer(wxHORIZONTAL);
+	outer_sizer->Add(interactives_sizer, wxSizerFlags().Border(wxALL, 10));
 
-	//wxTextCtrl* textCtrl = new wxTextCtrl(panel, wxID_ANY, "Not Static Text", wxPoint(550, 150), wxSize(100, 50), wxTE_PASSWORD);
 
-	//wxSlider* slider = new wxSlider(panel, wxID_ANY, 50, 0, 100, wxPoint(150, 250), wxSize(200, 35), wxSL_VALUE_LABEL);
-
-	//wxGauge* gauge = new wxGauge(panel, wxID_ANY, 100, wxPoint(550, 250), wxSize(200, 35), wxGA_HORIZONTAL);
-	//gauge->SetValue(89);
-
-	//wxArrayString choices;
-	//choices.Add("Item A");
-	//choices.Add("Item B");
-	//choices.Add("Item C");
-	//choices.Add("Item D");
-
-	//wxChoice* choice = new wxChoice(panel, wxID_ANY, wxPoint(150, 350), wxSize(200, 50), choices, wxCB_SORT);
-	//choice->Select(1);
-
-	//wxSpinCtrl* spinCtrl = new wxSpinCtrl(panel, wxID_ANY, "", wxPoint(550, 350), wxSize(200, 25), wxSP_WRAP);
-
-	//wxListBox* list = new wxListBox(panel, wxID_ANY, wxPoint(150, 450), wxSize(200, -1), choices, wxLB_MULTIPLE);
-
-	//wxRadioBox* radio = new wxRadioBox(panel, wxID_ANY, "Radio Box", wxPoint(550, 450), wxDefaultSize, choices, 2, wxRA_SPECIFY_COLS);
-
+	panel->Layout();
+	panel->SetSizer(outer_sizer);
+	outer_sizer->SetSizeHints(this);
 }
 
 void MainFrame::BindButtons()
 {
-	change_theme_button->Bind(wxEVT_BUTTON, [=](wxCommandEvent& event) {SetTheme(theme);});
-	add_note_button;
+	change_theme_button->Bind(wxEVT_BUTTON, [=](wxCommandEvent& event) {OnChangeThemeButtonClicked(event, theme);});
+	add_note_button->Bind(wxEVT_BUTTON, &MainFrame::OnAddNoteButtonClicked, this);
+}
+
+void MainFrame::OnChangeThemeButtonClicked(wxCommandEvent& event, unsigned theme)
+{
+	SetTheme(theme);
+}
+
+void MainFrame::OnAddNoteButtonClicked(wxCommandEvent& event)
+{
+	AddNote();
 }
 
 void MainFrame::SetTheme(unsigned number)
@@ -118,6 +132,17 @@ unsigned MainFrame::GetTheme()
 	return theme;
 }
 
+void MainFrame::SaveNotes()
+{
+
+}
+
+std::vector<Note> MainFrame::GetNotes()
+{
+	std::vector<Note> notes;
+	return notes;
+}
+
 void MainFrame::ChangeBgOfWindow(wxWindow* object, wxColour color)
 {
 	if (object)
@@ -138,4 +163,34 @@ void MainFrame::UpdateBitButton(wxString image_address, wxBitmapButton* button, 
 	image.Rescale(image_width, image_height);
 	bitmap_image = wxBitmap(image);
 	button->SetBitmapLabel(bitmap_image);
+}
+
+void MainFrame::AddNote()
+{
+	//there's a bug i'll work on tomorrow
+	wxSize client_window_size = this->GetClientSize();
+	Note note = Note();
+	notes.push_back(note);
+
+	int note_label_width = (client_window_size.x - (columns - 1) * gap) / columns;
+	height += (notes.size() % columns) * (note_label_ratio * note_label_width + gap);
+	if (!height)
+		height = note_label_width;
+
+	note_field->SetVirtualSize(wxSize(-1, height));
+	
+	wxButton* note_label = new wxButton(note_field, wxID_ANY, note.title, wxDefaultPosition,
+		wxSize(note_label_width, note_label_ratio * note_label_width));
+	note_labels.push_back(note_label);
+
+
+
+
+	note_field_sizer->Add(note_label, wxSizerFlags().Border(wxALL, 10));
+
+}
+
+void MainFrame::UpdateNoteDisplay()
+{
+
 }
