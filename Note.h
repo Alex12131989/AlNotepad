@@ -8,7 +8,7 @@ public:
 	std::string title = "New Note";
 	std::string content;
 	std::vector <int> date_of_creation = ReturnNow();
-	std::vector <int> date_of_last_edition;
+	std::vector <int> date_of_last_edition = ReturnNow();
 	bool pinned = false;
 	bool special = false;
 
