@@ -1,7 +1,9 @@
 #pragma once
+#include "Drawing.h"
+#include "Note.h"
+
 #include <wx/wx.h>
 #include <vector>
-#include "Note.h"
 
 
 class MainFrame : public wxFrame
@@ -23,6 +25,7 @@ private:
 		note_label_ratio = 1,
 		theme = GetTheme();
 
+	//other stuff idk how to generalize
 	std::vector <Note> notes;
 	struct NoteInfo
 	{
@@ -46,31 +49,35 @@ private:
 	wxGridSizer* note_field_sizer;
 	wxPanel* note_field_panel;
 	std::vector<wxPanel*> note_labels;
+	std::vector<Drawing*> canvases;
 	//----------------------------------
 	
 	//widget binding
 	void BindObjects();
-	void OnChangeThemeButtonClicked(wxCommandEvent& event, unsigned theme);
+	void OnChangeThemeButtonClicked(wxCommandEvent& event, int theme);
 	void OnAddNoteButtonClicked(wxCommandEvent& event);
 	void OnWindowResize(wxSizeEvent& event);
 
-	//assets loading
-	wxBitmap GetScaledImage(wxString address, unsigned width, unsigned height);
-
 	//theme changing
-	void SetTheme(unsigned number);
+	void SetTheme(int number);
 	void ChangeBgOfWindow(wxWindow* object, wxColour color);
 	void UpdateBitButton(wxString address, wxBitmapButton* button, unsigned image_width, unsigned image_height);
 
 	//user data managment
-	void SaveTheme(unsigned number);
-	unsigned GetTheme();
+	void SaveTheme(int number);
+	int GetTheme();
+	wxString GenerateCode(int size);
 	void SaveNotes();
+	std::vector<int> ConvertStringToDateVector(std::string string);
+	bool ConvertStringToBool(std::string string);
 	std::vector<NoteInfo> GetNotes();
 
 	//notes logic
-	void AddNote();
+	void AddNewNote();
 	void UpdateNoteDisplay();
 	void TrickOutNote(wxPanel* note, NoteInfo info);
 	void DisplayNote(wxPanel* note, NoteInfo info);
+	void LoadNotes();
+
+	void CreateNewWindow(wxString title, Note note_class);
 };

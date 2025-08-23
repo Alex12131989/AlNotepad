@@ -9,3 +9,5 @@ class App : public wxApp
 public: 
 	bool OnInit();
 };
+
+wxBitmap GetScaledImage(wxString address, unsigned width, unsigned height);
