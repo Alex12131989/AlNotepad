@@ -43,3 +43,4 @@ wxBitmap GetScaledImage(wxString address, unsigned width, unsigned height)
 
 	return bitmap_image;
 }
+

@@ -11,7 +11,7 @@ public:
 	void DrawTextures();
 
 private:
-	wxPanel* panel;
+	Drawing* panel;
 	Drawing* canvas;
 };
 

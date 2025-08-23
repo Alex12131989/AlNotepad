@@ -436,7 +436,7 @@ void MainFrame::TrickOutNote(wxPanel* note, NoteInfo info)
 
 	//line
 	Drawing* canvas = new Drawing(note);
-	canvas->DrawLine(wxPoint(0, 0), wxPoint(note_label_width, 0));
+	canvas->Line(wxPoint(0, 0), wxPoint(note_label_width, 0));
 	canvases.push_back(canvas);
 
 	//title

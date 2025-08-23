@@ -11,3 +11,4 @@ public:
 };
 
 wxBitmap GetScaledImage(wxString address, unsigned width, unsigned height);
+
